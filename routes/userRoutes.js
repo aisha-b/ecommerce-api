@@ -30,7 +30,7 @@ router.get('/', auth.adminVerify, (req, res) => {
 })
 
 router.get('/get-user-details', auth.customerVerify, (req, res) => {
-
+	
 	userController.getUserDetails(req.headers.authorization).then(
 		result => res.send(result));
 })
@@ -54,6 +54,4 @@ router.post('/checkout', auth.customerVerify, (req, res) => {
 		result => res.send(result));
 })
 
-
-router
 module.exports = router;

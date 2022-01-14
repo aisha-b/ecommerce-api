@@ -8,9 +8,9 @@ const productSchema = new mongoose.Schema({
 		required: [true, 'Product name is required']
 	},
 
-	image: {
-		name: String,
-		src: String
+	imageURL: {
+		type: String,
+		required: [true, 'Product imageURL is required']
 	},
 
 	description: {
@@ -18,15 +18,44 @@ const productSchema = new mongoose.Schema({
 		required: [true, 'Product description is required']
 	},
 
-	type: {
-		type: String,
-		required: [true, 'Product type is required']
+	price: {
+		type: Number,
+		required: [true, 'Price value is required']
 	},
 
-	price:  {
-		type: Number,
-		required: [true, 'Product price is required']
-	},
+	specifications: [{
+		_id: false,
+		
+		key: {
+			type: String,
+			required: [true, 'Key is required']
+		},
+		values: [{
+			type: String,
+			required: [true, 'Value is required']
+		}]
+	}],
+
+	reviews: [{
+		_id: false,
+
+		userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: [true, 'User ID is required']
+		},
+
+		comment:  {
+			type: String,
+			required: [true, 'Comment is required']
+		},
+
+		rating: {
+			type: Number,
+			required: [true, 'Rating is required'],
+			min: 0,
+			max: 100
+		}
+	}],
 
 	isActive: {
 		type: Boolean,

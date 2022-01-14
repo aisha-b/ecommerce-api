@@ -11,6 +11,7 @@ const orderSchema = new mongoose.Schema({
 	},
 
 	items: [{
+		_id: false,
 
 		productId: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -40,13 +41,11 @@ const orderSchema = new mongoose.Schema({
 	},
 
 	shippingAddress: {
+		_id: false,
+		
 		street: {
 			type: String,
 			required: [true, 'Street is required']
-		},
-		barangay: {
-			type: String,
-			required: [true, 'Barangay is required']
 		},
 		city: {
 			type: String,

@@ -1,72 +1,69 @@
+const auth = require("./../auth");
+const User = require("./../models/User");
 
-const auth = require('./../auth');
-const User = require('./../models/User');
-
-module.exports.getUserWishlist = (token, productId) => {
-
+module.exports.getUserWishlist = (token) => {
 	let userId = auth.decode(token).id;
 
-	return User.findById(userId).then((result, error) =>
-		error ? error : result.wishlist)
-}
+	return User.findById(userId)
+		.then((result) => {
+			if (result !== null) {
+				return { userWishList: result.wishlist };
+			} else {
+				return { message: "User not found" };
+			}
+		})
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.addItem = (token, productId) => {
-
 	let userId = auth.decode(token).id;
 
-	return User.findById(userId).then((result, error) => {
+	return User.findById(userId)
+		.then((result) => {
+			if (result !== null) {
+				let isItemOnWishlist = result.wishlist.some(
+					(item) => item == productId
+				);
 
-		if(error) {
-			return error;
-		} else {
+				if (isItemOnWishlist) {
+					return { message: "Item already in wishlist" };
+				} else {
+					result.wishlist.push(productId);
 
-			let isItemOnWishlist = result.wishlist.some(item => item == productId);
-			
-			if(isItemOnWishlist) {
-				return {error: "Item already in wishlist"};
+					return result.save().then(() => true);
+				}
 			} else {
-
-				return User.findById(userId).then((result, error) => {
-
-					if(error) {
-						return error;
-					} else {
-
-						result.wishlist.push(productId);
-
-						return result.save().then((result, error) =>
-							error ? error : true);
-					}
-				})
+				return { message: "User not found" };
 			}
-		}
-	})
-
-
-}
+		})
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.removeItem = (token, productId) => {
-
 	let userId = auth.decode(token).id;
 
-	return User.findById(userId).then((result, error) => {
+	return User.findById(userId)
+		.then((result) => {
+			if (result !== null) {
+				let itemIndex = result.wishlist.indexOf(productId);
+				let isItemInWishlist = itemIndex !== -1;
 
-		if(error) {
-			return error;
-		} else {
+				if (isItemInWishlist) {
+					result.wishlist.splice(itemIndex, 1);
 
-			let itemIndex;
-			result.wishlist.forEach((item, index) => {
-
-				if(item.productId == productId) {
-					itemIndex = index;
+					return result.save().then(() => true);
+				} else {
+					return { message: "Item not found in wishlist" };
 				}
-			})
-
-			result.wishlist.splice(itemIndex, 1);
-
-			return result.save().then((result, error) =>
-				error ? error : true);
-		}
-	})
-}
+			} else {
+				return { message: "User not found" };
+			}
+		})
+		.catch((err) => {
+			return { error: err };
+		});
+};

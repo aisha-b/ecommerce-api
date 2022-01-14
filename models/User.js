@@ -38,7 +38,6 @@ const userSchema = new mongoose.Schema({
 
 	address: {
 		street: String,
-		barangay: String,
 		city: String,
 		province: String,
 		zip: Number,
@@ -51,6 +50,7 @@ const userSchema = new mongoose.Schema({
 	}],
 
 	cart: [{
+		_id: false,
 
 		productId: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -59,12 +59,14 @@ const userSchema = new mongoose.Schema({
 
 		quantity: {
 			type: Number,
-			required: [true, 'Quantity is required']
+			required: [true, 'Quantity is required'],
+			min: 1
 		}
 	}],
 
 	orders: [{
-
+		_id: false,
+		
 		orderId: {
 			type: mongoose.Schema.Types.ObjectId,
       		ref: 'Order'

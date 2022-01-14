@@ -1,164 +1,170 @@
-
-const User = require('./../models/User');
-const bcrypt = require('bcrypt');
-const auth = require('./../auth');
-const Order = require('./../models/Order');
+const User = require("./../models/User");
+const bcrypt = require("bcrypt");
+const auth = require("./../auth");
+const Order = require("./../models/Order");
 
 module.exports.register = (reqBody) => {
-
-	const {firstName, lastName, email, password, mobileNo} = reqBody;
+	const { firstName, lastName, email, password, mobileNo } = reqBody;
 
 	let newUser = new User({
 		firstName: firstName,
 		lastName: lastName,
 		email: email,
 		password: bcrypt.hashSync(password, 10),
-		mobileNo: mobileNo
-	})
+		mobileNo: mobileNo,
+	});
 
-	return User.findOne({email: email}).then((result, error) => {
-		
-		if(error) {
-			return error;
-		} else {
-			if(result !== null){
-				return {error: "User already exists"};
+	return User.findOne({ email: email })
+		.then((result) => {
+			if (result == null) {
+				return newUser.save().then(() => true);
 			} else {
-				return newUser.save().then((result, error) =>
-				error ? error : true);
+				return { message: "User already exists" };
 			}
-		}
-	})
-
-
-}
+		})
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.login = (reqBody) => {
+	const { email, password } = reqBody;
 
-	const {email, password} = reqBody;
+	return User.findOne({ email: email })
+		.then((result) => {
+			if (result !== null) {
+				let isPasswordRight = bcrypt.compareSync(
+					password,
+					result.password
+				);
 
-	return User.findOne({email: email}).then((result, error) => {
-
-		if(error) {
-			return error;
-		} else if(result == null) {
-			return {error: "Email doesn't exist"};
-		} else {
-
-			let isPasswordRight = bcrypt.compareSync(
-				password, result.password);
-
-			if(isPasswordRight) {
-				return {access: auth.createAccessToken(result)};
+				if (isPasswordRight) {
+					return { access: auth.createAccessToken(result) };
+				} else {
+					return { message: "Incorrect password" };
+				}
 			} else {
-				return {error: "Incorrect password"};
+				return { message: "Email doesn't exist" };
 			}
-		}
-	})
-}
+		})
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.getAllUsers = () => {
-
-	return User.find().then((result, error) => 
-		error ? error : result);
-}
+	return User.find()
+		.then((result) => {
+			return { users: result };
+		})
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.getUserDetails = (token) => {
-
 	let id = auth.decode(token).id;
 
-	return User.findById(id).then((result, error) =>
-		error ? error : result);
-}
+	return User.findById(id)
+		.then((result) => {
+			return { userDetails: result };
+		})
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.changeDetails = (token, reqBody) => {
-
 	let id = auth.decode(token).id;
-	let {firstName, lastName, password, mobileNo, address} = reqBody;
+	let { firstName, lastName, password, mobileNo, address } = reqBody;
 
 	let newUserDetails = {
 		firstName: firstName,
 		lastName: lastName,
 		password: bcrypt.hashSync(password, 10),
 		mobileNo: mobileNo,
-		address: address
-	}
+		address: address,
+	};
 
-	return User.findByIdAndUpdate(id, newUserDetails).then((result, error) =>
-		error ? error : true);
-}
+	return User.findByIdAndUpdate(id, newUserDetails)
+		.then(() => true)
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.setUserAsAdmin = (userId) => {
-
-	return User.findByIdAndUpdate(userId, {isAdmin: true}).then((result, error) =>
-		error ? error : true);
-}
+	return User.findByIdAndUpdate(userId, { isAdmin: true })
+		.then(() => true)
+		.catch((err) => {
+			return { error: err };
+		});
+};
 
 module.exports.checkOut = (token, reqBody) => {
-
 	let userId = auth.decode(token).id;
-	let {shippingAddress} = reqBody;
+	let { shippingAddress } = reqBody;
 
-	return User.findById(userId).populate({
+	return User.findById(userId)
+		.populate({
 			path: "cart",
 			populate: {
-				path: "productId"
-			}
-		}).then((result, error) => {
+				path: "productId",
+				match: { isActive: true },
+			},
+		})
+		.then((result) => {
+			let isCartEmpty = result.cart.length == 0;
+			let areThereInactiveItems = result.cart.some((item) => {
+				return item.productId == null;
+			});
 
-			if(error) {
-				return error;
-			} else {
-
-				if(result.cart.length == 0){
-					return {error: "Cart is empty"};
+			if (result !== null) {
+				if (isCartEmpty) {
+					return { message: "Cart is empty" };
+				} else if (areThereInactiveItems) {
+					return { message: "Inactive items found in user cart" };
 				} else {
-
 					let newItems = [];
-					result.cart.forEach(item => {
-
+					result.cart.forEach((item) => {
 						newItems.push({
 							productId: item.productId._id,
 							productPrice: item.productId.price,
 							quantity: item.quantity,
-							totalProductPrice: (item.productId.price * item.quantity)
-						})
-					})
+							totalProductPrice:
+								item.productId.price * item.quantity,
+						});
+					});
 
 					let totalOrderPrice = 0;
-					result.cart.forEach(item => {
-
+					result.cart.forEach((item) => {
 						totalOrderPrice += item.productId.price * item.quantity;
-					})
+					});
 
 					let newOrder = new Order({
 						userId: userId,
 						items: newItems,
 						totalOrderPrice: totalOrderPrice,
-						shippingAddress: shippingAddress
-					})
+						shippingAddress: shippingAddress,
+					});
 
-					return newOrder.save().then((result, error) =>
-						error ? error : result )
-					.then((order, error) => {
+					return newOrder.save().then((order) => {
+						let orderId = order._id;
 
-						if(error) {
-							return error;
-						} else {
-							let orderId = order._id;
+						return User.findByIdAndUpdate(userId, {
+							$set: { cart: [] },
+						}).then((user) => {
+							user.orders.push({ orderId: orderId });
 
-							return User.findByIdAndUpdate(userId, {$set: {cart: []}}).then((user, error) => {
-
-								user.orders.push({orderId: orderId});
-
-								return user.save().then(result => true);
-							})
-						}
-					})
-
+							return user.save().then(() => true);
+						});
+					});
 				}
+			} else {
+				return { message: "User not found" };
 			}
 		})
-
-}
-
+		.catch((err) => {
+			return { error: err };
+		});
+};
