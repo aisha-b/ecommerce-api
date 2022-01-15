@@ -35,7 +35,6 @@ router.get('/get-user-details', auth.customerVerify, (req, res) => {
 		result => res.send(result));
 })
 
-
 router.put('/change-details', auth.customerVerify, (req, res) => {
 
 	userController.changeDetails(req.headers.authorization, req.body).then(

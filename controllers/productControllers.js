@@ -3,33 +3,21 @@ const Order = require("./../models/Order");
 const auth = require("./../auth");
 
 module.exports.getAllProducts = () => {
-	return Product.find()
-		.then((result) => {
-			return { products: result };
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+	return Product.find().then((result, error) =>
+		error ? { error: error.message } : { products: result }
+	);
 };
 
 module.exports.getActiveProducts = () => {
-	return Product.find({ isActive: true })
-		.then((result) => {
-			return { activeProducts: result };
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+	return Product.find({ isActive: true }).then((result, error) =>
+		error ? { error: error.message } : { activeProducts: result }
+	);
 };
 
 module.exports.getProduct = (id) => {
-	return Product.findById(id)
-		.then((result) => {
-			return { product: result };
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+	return Product.findById(id).then((result, error) =>
+		error ? { error: error.message } : { product: result }
+	);
 };
 
 module.exports.createProduct = (reqBody) => {
@@ -47,10 +35,7 @@ module.exports.createProduct = (reqBody) => {
 
 	return newProduct
 		.save()
-		.then(() => true)
-		.catch((err) => {
-			return { error: err };
-		});
+		.then((result, error) => (result ? true : { error: error.message }));
 };
 
 module.exports.updateProduct = (id, reqBody) => {
@@ -64,35 +49,27 @@ module.exports.updateProduct = (id, reqBody) => {
 		specifications: specifications,
 	};
 
-	return Product.findByIdAndUpdate(id, updatedProductDetails)
-		.then(() => true)
-		.catch((err) => {
-			return { error: err };
-		});
+	return Product.findByIdAndUpdate(id, updatedProductDetails).then((result) =>
+		result !== null ? true : false
+	);
 };
 
 module.exports.deleteProduct = (id) => {
-	return Product.findByIdAndDelete(id)
-		.then(() => true)
-		.catch((err) => {
-			return { error: err };
-		});
+	return Product.findByIdAndDelete(id).then((result) =>
+		result !== null ? true : false
+	);
 };
 
 module.exports.archiveProduct = (id) => {
-	return Product.findByIdAndUpdate(id, { isActive: false })
-		.then(() => true)
-		.catch((err) => {
-			return { error: err };
-		});
+	return Product.findByIdAndUpdate(id, { isActive: false }).then((result) =>
+		result !== null ? true : false
+	);
 };
 
 module.exports.unarchiveProduct = (id) => {
-	return Product.findByIdAndUpdate(id, { isActive: true })
-		.then(() => true)
-		.catch((err) => {
-			return { error: err };
-		});
+	return Product.findByIdAndUpdate(id, { isActive: true }).then((result) =>
+		result !== null ? true : false
+	);
 };
 
 module.exports.addProductReview = (token, productId, reqBody) => {
@@ -107,22 +84,33 @@ module.exports.addProductReview = (token, productId, reqBody) => {
 	return Order.findOne({
 		userId: userId,
 		items: { $elemMatch: { productId: productId } },
-	})
-		.then((result) => {
-			if (result !== null) {
-				return Product.findById(productId).then((result) => {
-					if (result !== null) {
-						result.reviews.push(newReview);
-						return result.save().then(() => true);
-					} else {
-						return { message: "Product not found" };
-					}
-				});
-			} else {
-				return { message: "Product not found in user order history" };
-			}
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+	}).then((result, error) => {
+		if (error) {
+			return { error: error.message };
+		} else if (result !== null) {
+			return Product.findById(productId).then((result) => {
+				if (result !== null) {
+					return Product.find({
+						_id: productId,
+						reviews: { $elemMatch: { userId: userId } },
+					}).then((result) => {
+						if (result == null) {
+							result.reviews.push(newReview);
+							return result
+								.save()
+								.then((result, error) =>
+									result ? true : { error: error.message }
+								);
+						} else {
+							return { message: "User already gave a review" };
+						}
+					});
+				} else {
+					return { message: "Product not found" };
+				}
+			});
+		} else {
+			return { message: "Product not found in user order history" };
+		}
+	});
 };

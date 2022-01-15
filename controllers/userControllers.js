@@ -14,64 +14,49 @@ module.exports.register = (reqBody) => {
 		mobileNo: mobileNo,
 	});
 
-	return User.findOne({ email: email })
-		.then((result) => {
-			if (result == null) {
-				return newUser.save().then(() => true);
-			} else {
-				return { message: "User already exists" };
-			}
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+	return User.findOne({ email: email }).then((result, error) => {
+		if (error) {
+			return { error: error.message };
+		} else if (result == null) {
+			return newUser.save().then(() => true);
+		} else {
+			return { message: "User already exists" };
+		}
+	});
 };
 
 module.exports.login = (reqBody) => {
 	const { email, password } = reqBody;
 
-	return User.findOne({ email: email })
-		.then((result) => {
-			if (result !== null) {
-				let isPasswordRight = bcrypt.compareSync(
-					password,
-					result.password
-				);
+	return User.findOne({ email: email }).then((result, error) => {
+		if (error) {
+			return { error: error.message };
+		} else if (result !== null) {
+			let isPasswordRight = bcrypt.compareSync(password, result.password);
 
-				if (isPasswordRight) {
-					return { access: auth.createAccessToken(result) };
-				} else {
-					return { message: "Incorrect password" };
-				}
+			if (isPasswordRight) {
+				return { access: auth.createAccessToken(result) };
 			} else {
-				return { message: "Email doesn't exist" };
+				return { message: "Incorrect password" };
 			}
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+		} else {
+			return { message: "Email doesn't exist" };
+		}
+	});
 };
 
 module.exports.getAllUsers = () => {
-	return User.find()
-		.then((result) => {
-			return { users: result };
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+	return User.find().then((result, error) =>
+		error ? { error: error.message } : { users: result }
+	);
 };
 
 module.exports.getUserDetails = (token) => {
 	let id = auth.decode(token).id;
 
-	return User.findById(id)
-		.then((result) => {
-			return { userDetails: result };
-		})
-		.catch((err) => {
-			return { error: err };
-		});
+	return User.findById(id).then((result, error) =>
+		error ? { error: error.message } : { userDetails: result }
+	);
 };
 
 module.exports.changeDetails = (token, reqBody) => {
@@ -86,19 +71,15 @@ module.exports.changeDetails = (token, reqBody) => {
 		address: address,
 	};
 
-	return User.findByIdAndUpdate(id, newUserDetails)
-		.then(() => true)
-		.catch((err) => {
-			return { error: err };
-		});
+	return User.findByIdAndUpdate(id, newUserDetails).then((result, error) =>
+		result ? true : { error: error.message }
+	);
 };
 
 module.exports.setUserAsAdmin = (userId) => {
-	return User.findByIdAndUpdate(userId, { isAdmin: true })
-		.then(() => true)
-		.catch((err) => {
-			return { error: err };
-		});
+	return User.findByIdAndUpdate(userId, { isAdmin: true }).then(
+		(result, error) => (result ? true : { error: error.message })
+	);
 };
 
 module.exports.checkOut = (token, reqBody) => {
@@ -113,13 +94,15 @@ module.exports.checkOut = (token, reqBody) => {
 				match: { isActive: true },
 			},
 		})
-		.then((result) => {
+		.then((result, error) => {
 			let isCartEmpty = result.cart.length == 0;
 			let areThereInactiveItems = result.cart.some((item) => {
 				return item.productId == null;
 			});
 
-			if (result !== null) {
+			if (error) {
+				return { error: error.message };
+			} else {
 				if (isCartEmpty) {
 					return { message: "Cart is empty" };
 				} else if (areThereInactiveItems) {
@@ -156,15 +139,14 @@ module.exports.checkOut = (token, reqBody) => {
 						}).then((user) => {
 							user.orders.push({ orderId: orderId });
 
-							return user.save().then(() => true);
+							return user
+								.save()
+								.then((result, error) =>
+									result ? true : { error: error.message }
+								);
 						});
 					});
 				}
-			} else {
-				return { message: "User not found" };
 			}
-		})
-		.catch((err) => {
-			return { error: err };
 		});
 };
