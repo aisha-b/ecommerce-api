@@ -16,7 +16,7 @@ module.exports.getUserCart = (token) => {
 			if (error) {
 				return { error: error.message };
 			} else {
-				return result.cart;
+				return {cart: result.cart};
 			}
 		});
 };

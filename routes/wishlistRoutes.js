@@ -10,7 +10,7 @@ router.get('/', auth.customerVerify, (req, res) => {
 		result => res.send(result));
 })
 
-router.put('/:productId/add-to-wishlist', auth.customerVerify, (req, res) => {
+router.put('/:productId/add', auth.customerVerify, (req, res) => {
 
 	wishlistController.addItem(req.headers.authorization, req.params.productId).then(
 		result => res.send(result));

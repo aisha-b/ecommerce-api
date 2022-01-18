@@ -36,6 +36,25 @@ module.exports.customerVerify = (req, res, next) => {
 	}
 }
 
+module.exports.userVerify = (req, res, next) => {
+
+	let token = req.headers.authorization;
+
+	if(typeof token !== "undefined") {
+
+		token = token.slice(7);
+
+		return jwt.verify(token, secret, (error, result) => {
+			
+			if(error) {
+				return res.send(false);
+			} else {
+				return next();
+			}
+		})
+	}
+}
+
 module.exports.adminVerify = (req, res, next) => {
 
 	let token =  req.headers.authorization;

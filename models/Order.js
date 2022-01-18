@@ -35,6 +35,16 @@ const orderSchema = new mongoose.Schema({
 
 	}],
 
+	discount: {
+		type: Number,
+		default: 0
+	},
+
+	shippingFee: {
+		type: Number,
+		default: 0
+	},
+
 	totalOrderPrice: {
 		type: Number,
 		required: [true, 'Total order price is required']
@@ -50,10 +60,6 @@ const orderSchema = new mongoose.Schema({
 		city: {
 			type: String,
 			required: [true, 'City is required']
-		},
-		province: {
-			type: String,
-			required: [true, 'Province is required']
 		},
 		zip: {
 			type: Number,

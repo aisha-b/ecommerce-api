@@ -49,26 +49,26 @@ module.exports.updateProduct = (id, reqBody) => {
 		specifications: specifications,
 	};
 
-	return Product.findByIdAndUpdate(id, updatedProductDetails).then((result) =>
-		result !== null ? true : false
+	return Product.findByIdAndUpdate(id, updatedProductDetails).then((result, error) =>
+		error ? error : true
 	);
 };
 
 module.exports.deleteProduct = (id) => {
-	return Product.findByIdAndDelete(id).then((result) =>
-		result !== null ? true : false
+	return Product.findByIdAndDelete(id).then((result, error) =>
+		error ? false : true
 	);
 };
 
 module.exports.archiveProduct = (id) => {
-	return Product.findByIdAndUpdate(id, { isActive: false }).then((result) =>
-		result !== null ? true : false
+	return Product.findByIdAndUpdate(id, { isActive: false }).then((result, error) =>
+		error ? false : true
 	);
 };
 
 module.exports.unarchiveProduct = (id) => {
-	return Product.findByIdAndUpdate(id, { isActive: true }).then((result) =>
-		result !== null ? true : false
+	return Product.findByIdAndUpdate(id, { isActive: true }).then((result, error) =>
+		error ? false : true
 	);
 };
 

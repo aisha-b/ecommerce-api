@@ -29,7 +29,7 @@ router.get('/', auth.adminVerify, (req, res) => {
 		result => res.send(result));
 })
 
-router.get('/get-user-details', auth.customerVerify, (req, res) => {
+router.get('/user-details', auth.userVerify, (req, res) => {
 	
 	userController.getUserDetails(req.headers.authorization).then(
 		result => res.send(result));

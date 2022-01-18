@@ -17,7 +17,9 @@ module.exports.getAllOrdersByStatus = (status) => {
 module.exports.getUserOrders = (token) => {
 	let userId = auth.decode(token).id;
 
-	return Order.find({ userId: userId }).then((result, error) =>
+	return Order.find({ userId: userId })
+
+	.then((result, error) =>
 		error ? { error: error.message } : { userOrders: result }
 	);
 };

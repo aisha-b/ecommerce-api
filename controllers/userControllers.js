@@ -4,14 +4,14 @@ const auth = require("./../auth");
 const Order = require("./../models/Order");
 
 module.exports.register = (reqBody) => {
-	const { firstName, lastName, email, password, mobileNo } = reqBody;
+	const { firstName, lastName, email, password, mobileNum } = reqBody;
 
 	let newUser = new User({
 		firstName: firstName,
 		lastName: lastName,
 		email: email,
 		password: bcrypt.hashSync(password, 10),
-		mobileNo: mobileNo,
+		mobileNum: mobileNum,
 	});
 
 	return User.findOne({ email: email }).then((result, error) => {
@@ -54,9 +54,15 @@ module.exports.getAllUsers = () => {
 module.exports.getUserDetails = (token) => {
 	let id = auth.decode(token).id;
 
-	return User.findById(id).then((result, error) =>
-		error ? { error: error.message } : { userDetails: result }
-	);
+	return User.findById(id)
+		.then((result, error) => {
+			if(error){
+				return {error: error.message}
+			} else {
+				result.password = "";
+				return { userDetails: result };
+			}
+		});
 };
 
 module.exports.changeDetails = (token, reqBody) => {
@@ -67,7 +73,7 @@ module.exports.changeDetails = (token, reqBody) => {
 		firstName: firstName,
 		lastName: lastName,
 		password: bcrypt.hashSync(password, 10),
-		mobileNo: mobileNo,
+		mobileNum: mobileNo,
 		address: address,
 	};
 
@@ -84,7 +90,7 @@ module.exports.setUserAsAdmin = (userId) => {
 
 module.exports.checkOut = (token, reqBody) => {
 	let userId = auth.decode(token).id;
-	let { shippingAddress } = reqBody;
+	let { shippingAddress, shippingFee, discount } = reqBody;
 
 	return User.findById(userId)
 		.populate({
@@ -123,12 +129,15 @@ module.exports.checkOut = (token, reqBody) => {
 					result.cart.forEach((item) => {
 						totalOrderPrice += item.productId.price * item.quantity;
 					});
+					totalOrderPrice=totalOrderPrice + shippingFee - discount;
 
 					let newOrder = new Order({
 						userId: userId,
 						items: newItems,
 						totalOrderPrice: totalOrderPrice,
 						shippingAddress: shippingAddress,
+						shippingFee: shippingFee,
+						discount: discount
 					});
 
 					return newOrder.save().then((order) => {

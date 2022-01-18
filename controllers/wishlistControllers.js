@@ -4,9 +4,11 @@ const User = require("./../models/User");
 module.exports.getUserWishlist = (token) => {
 	let userId = auth.decode(token).id;
 
-	return User.findById(userId).then((result, error) =>
-		error ? { error: error.message } : { userWishList: result.wishlist }
-	);
+	return User.findById(userId)
+		.populate("wishlist")
+		.then((result, error) =>
+			error ? { error: error.message } : { wishlist: result.wishlist }
+		);
 };
 
 module.exports.addItem = (token, productId) => {

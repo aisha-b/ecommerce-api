@@ -30,7 +30,7 @@ const productSchema = new mongoose.Schema({
 			type: String,
 			required: [true, 'Key is required']
 		},
-		values: [{
+		value: [{
 			type: String,
 			required: [true, 'Value is required']
 		}]

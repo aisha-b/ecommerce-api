@@ -4,13 +4,13 @@ const router = express.Router();
 const auth = require('./../auth');
 const cartController = require('./../controllers/cartControllers');
 
-router.put('/', auth.customerVerify, (req, res) => {
+router.get('/', auth.customerVerify, (req, res) => {
 
 	cartController.getUserCart(req.headers.authorization).then(
 		result => res.send(result));
 })
 
-router.put('/:productId/add-to-cart', auth.customerVerify, (req, res) => {
+router.put('/:productId/add', auth.customerVerify, (req, res) => {
 
 	cartController.addItem(req.headers.authorization, req.params.productId).then(
 		result => res.send(result));

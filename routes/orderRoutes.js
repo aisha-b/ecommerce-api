@@ -4,7 +4,7 @@ const router = express.Router();
 const auth = require('./../auth');
 const orderController = require('./../controllers/orderControllers');
 
-router.get('/all', auth.adminVerify,  (req, res) => {
+router.get('/', auth.adminVerify,  (req, res) => {
 
 	orderController.getAllOrders().then(
 		result => res.send(result));
