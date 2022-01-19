@@ -75,8 +75,6 @@ module.exports.adminVerify = (req, res, next) => {
 				return isAdmin ? next() : res.send(false);
 			}
 		})
-	} else {
-		res.send(false);
 	}
 }
 

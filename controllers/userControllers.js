@@ -67,14 +67,12 @@ module.exports.getUserDetails = (token) => {
 
 module.exports.changeDetails = (token, reqBody) => {
 	let id = auth.decode(token).id;
-	let { firstName, lastName, password, mobileNo, address } = reqBody;
+	let { firstName, lastName, mobileNum } = reqBody;
 
 	let newUserDetails = {
 		firstName: firstName,
 		lastName: lastName,
-		password: bcrypt.hashSync(password, 10),
-		mobileNum: mobileNo,
-		address: address,
+		mobileNum: mobileNum
 	};
 
 	return User.findByIdAndUpdate(id, newUserDetails).then((result, error) =>

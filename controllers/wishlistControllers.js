@@ -11,6 +11,15 @@ module.exports.getUserWishlist = (token) => {
 		);
 };
 
+module.exports.checkItem = (token, productId) => {
+	let userId = auth.decode(token).id;
+
+	return User.find({_id: userId, wishlist: { $in: productId }})
+		.then((result, error) =>
+			error ? error : (result.length > 0 ? true : false)
+		);
+};
+
 module.exports.addItem = (token, productId) => {
 	let userId = auth.decode(token).id;
 

@@ -120,3 +120,12 @@ module.exports.removeItem = (token, productId) => {
 		}
 	});
 };
+
+module.exports.checkItem = (token, productId) => {
+	let userId = auth.decode(token).id;
+
+	return User.find({_id: userId, cart: { $elemMatch: {productId: productId} }})
+		.then((result, error) =>
+			error ? error : (result.length > 0 ? true : false)
+		);
+};

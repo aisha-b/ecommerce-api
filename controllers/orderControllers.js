@@ -3,9 +3,19 @@ const Order = require("./../models/Order");
 const User = require("./../models/User");
 
 module.exports.getAllOrders = () => {
-	return Order.find().then((result, error) =>
-		error ? { error: error.message } : { orders: result }
-	);
+	return Order.find()
+		.populate({
+			path:"items",
+			populate: {
+				path:"productId",
+			}
+	
+		}).populate({
+			path:"userId",
+		})
+		.then((result, error) =>
+			error ? { error: error.message } : { orders: result }
+		);
 };
 
 module.exports.getAllOrdersByStatus = (status) => {
@@ -17,11 +27,24 @@ module.exports.getAllOrdersByStatus = (status) => {
 module.exports.getUserOrders = (token) => {
 	let userId = auth.decode(token).id;
 
-	return Order.find({ userId: userId })
+	return User.findById(userId)
 
-	.then((result, error) =>
-		error ? { error: error.message } : { userOrders: result }
-	);
+		.populate({
+			path:"orders",
+			populate: {
+				path:"orderId",
+				populate: {
+					path: "items",
+					populate: {
+						path: "productId",
+					}
+				}
+			}
+	
+		})
+		.then((result, error) =>
+			error ? { error: error.message } : { userOrders: result.orders }
+		);
 };
 
 module.exports.getUserOrdersByStatus = (token, status) => {

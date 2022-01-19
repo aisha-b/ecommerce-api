@@ -28,4 +28,10 @@ router.delete('/:productId/remove', auth.customerVerify, (req, res) => {
 		result => res.send(result));
 })
 
+router.get('/:productId/check', auth.customerVerify, (req, res) => {
+
+	cartController.checkItem(req.headers.authorization, req.params.productId).then(
+		result => res.send(result));
+})
+
 module.exports = router;

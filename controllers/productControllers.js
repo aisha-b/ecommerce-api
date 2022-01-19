@@ -46,7 +46,7 @@ module.exports.updateProduct = (id, reqBody) => {
 		imageURL: imageURL,
 		description: description,
 		price: price,
-		specifications: specifications,
+		specifications:specifications
 	};
 
 	return Product.findByIdAndUpdate(id, updatedProductDetails).then((result, error) =>
