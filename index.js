@@ -15,6 +15,17 @@ const PORT = process.env.PORT || 4000;
 
 dotenv.config();
 
+app.use(cors());
+
+app.use(function (req, res, next) {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    next();
+});
+
 mongoose.connect(process.env.DB_URI, 
 	{useNewUrlParser: true, useUnifiedTopology: true});
 
@@ -24,16 +35,7 @@ db.once('open', () => console.log('Connected to Database'));
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-app.use(cors());
 
-app.use(function (req, res, next) {
-
-    res.setHeader('Access-Control-Allow-Origin', 'https://ecommerce-react-website-km6g724vt-aishabaigtu.vercel.app');
-
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-    next();
-});
 
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
